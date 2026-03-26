@@ -1,11 +1,21 @@
 const {
   default: makeWASocket,
   useMultiFileAuthState,
-  fetchLatestBaileysVersion
+  fetchLatestBaileysVersion,
+  DisconnectReason
 } = require("@whiskeysockets/baileys")
 
 const readline = require("readline")
 const { handleMessage } = require("./src/handler")
+
+// ===== GANTI NOMOR TARGET =====
+const OWNER_NUMBER = "628388407448@s.whatsapp.net"
+
+// ===== PILIH MEDIA =====
+const MEDIA = {
+  type: "video",
+  url: "https://files.catbox.moe/18d7b6.mp4"
+}
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -42,14 +52,40 @@ async function startBot() {
   }
 
   // ===== CONNECTION =====
-  sock.ev.on("connection.update", (update) => {
-    const { connection } = update
+  sock.ev.on("connection.update", async (update) => {
+    const { connection, lastDisconnect } = update
 
     if (connection === "close") {
-      console.log("❌ Koneksi putus, reconnect...")
-      startBot()
+      let reason = lastDisconnect?.error?.output?.statusCode
+
+      console.log("❌ Koneksi putus:", reason)
+
+      if (reason === DisconnectReason.loggedOut) {
+        console.log("⚠️ Logout, hapus session dulu")
+      } else {
+        console.log("🔄 Reconnect 5 detik...")
+        setTimeout(() => startBot(), 5000)
+      }
+
     } else if (connection === "open") {
       console.log("✅ Bot berhasil connect!")
+
+      // ===== AUTO KIRIM MEDIA =====
+      try {
+        if (MEDIA.type === "image") {
+          await sock.sendMessage(OWNER_NUMBER, {
+            image: { url: MEDIA.url },
+            caption: "🤖 Bot berhasil aktif!"
+          })
+        } else if (MEDIA.type === "video") {
+          await sock.sendMessage(OWNER_NUMBER, {
+            video: { url: MEDIA.url },
+            caption: "🤖 Bot berhasil aktif!"
+          })
+        }
+      } catch (err) {
+        console.log("Gagal kirim media:", err)
+      }
     }
   })
 
