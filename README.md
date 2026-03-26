@@ -1,0 +1,2 @@
+# Bot
+Simple WhatsApp Bot
