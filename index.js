@@ -8,15 +8,6 @@ const {
 const readline = require("readline")
 const { handleMessage } = require("./src/handler")
 
-// ===== GANTI NOMOR TARGET =====
-const OWNER_NUMBER = "628388407448@s.whatsapp.net"
-
-// ===== PILIH MEDIA =====
-const MEDIA = {
-  type: "video",
-  url: "https://files.catbox.moe/18d7b6.mp4"
-}
-
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
@@ -61,35 +52,20 @@ async function startBot() {
       console.log("❌ Koneksi putus:", reason)
 
       if (reason === DisconnectReason.loggedOut) {
-        console.log("⚠️ Logout, hapus session dulu")
+        console.log("⚠️ Logout, hapus folder session dulu!")
+        process.exit()
       } else {
-        console.log("🔄 Reconnect 5 detik...")
-        setTimeout(() => startBot(), 5000)
+        console.log("🔄 Reconnect ulang...")
+        startBot()
       }
 
     } else if (connection === "open") {
       console.log("✅ Bot berhasil connect!")
-
-      // ===== AUTO KIRIM MEDIA =====
-      try {
-        if (MEDIA.type === "image") {
-          await sock.sendMessage(OWNER_NUMBER, {
-            image: { url: MEDIA.url },
-            caption: "🤖 Bot berhasil aktif!"
-          })
-        } else if (MEDIA.type === "video") {
-          await sock.sendMessage(OWNER_NUMBER, {
-            video: { url: MEDIA.url },
-            caption: "🤖 Bot berhasil aktif!"
-          })
-        }
-      } catch (err) {
-        console.log("Gagal kirim media:", err)
-      }
+      // ❌ TIDAK ADA KIRIM FOTO/VIDEO DI SINI
     }
   })
 
-  // ===== MESSAGE =====
+  // ===== MESSAGE HANDLER =====
   sock.ev.on("messages.upsert", async ({ messages }) => {
     const msg = messages[0]
     if (!msg.message) return
