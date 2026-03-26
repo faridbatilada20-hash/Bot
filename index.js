@@ -27,12 +27,10 @@ async function startBot() {
 
   sock.ev.on("creds.update", saveCreds)
 
-  // 👉 kalau belum login
+  // ===== PAIRING =====
   if (!sock.authState.creds.registered) {
-
     let nomor = await question("Masukkan nomor WhatsApp (contoh: 628xxx): ")
-
-    nomor = nomor.replace(/[^0-9]/g, "") // bersihin simbol
+    nomor = nomor.replace(/[^0-9]/g, "")
 
     const code = await sock.requestPairingCode(nomor)
 
@@ -43,6 +41,19 @@ async function startBot() {
     rl.close()
   }
 
+  // ===== CONNECTION =====
+  sock.ev.on("connection.update", (update) => {
+    const { connection } = update
+
+    if (connection === "close") {
+      console.log("❌ Koneksi putus, reconnect...")
+      startBot()
+    } else if (connection === "open") {
+      console.log("✅ Bot berhasil connect!")
+    }
+  })
+
+  // ===== MESSAGE =====
   sock.ev.on("messages.upsert", async ({ messages }) => {
     const msg = messages[0]
     if (!msg.message) return
